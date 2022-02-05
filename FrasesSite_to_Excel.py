@@ -51,7 +51,7 @@ print(f"Foram encontrados {len(lista_textos)} frases em {num_de_pagina} páginas
 print("Iniciando envio de mensagens via Whatsapp...")
 
 for i in range(1,2):
-    whatsapp = "+5592992534185"
+    whatsapp = "+55929925341XX"
     amostra = df.sample().to_string(index=False)              #to_string(index=False) tira  o numerozinho do indice da linha
     pw.sendwhatmsg_instantly(f"{whatsapp}", f"{amostra}", 15, tab_close=True,close_time=4)
     py.click(1327, 705)
