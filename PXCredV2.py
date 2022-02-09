@@ -1,88 +1,105 @@
-import pyautogui as p
 from time import sleep
-from openpyxl import Workbook
-from openpyxl import load_workbook
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import pyperclip as c
+from openpyxl import load_workbook
+import pyautogui as p
 
 index = 1
+# Abrindo excel
+file = r'C:\Users\supor\Desktop\PXTeste.xlsx'
+wb = load_workbook(file)
+ws = wb.active
 
-for i in range(1,4):
-    file = r'C:\Users\supor\Desktop\PXTeste.xlsx'
-    wb = load_workbook(file)
-    ws = wb.active
-    num_processo = ws.cell(row=index+1,column=1).value
+for i in range(1,2):
 
-    #Abrindo o chrome
-    p.hotkey('win', 'r')
-    p.write('chrome.exe')
-    p.press('enter')
+    # Inicializando o chrome maximizado
+    url = 'https://pje.trt15.jus.br/consultaprocessual/'
+    driver = webdriver.Chrome()
+    driver.maximize_window()
+    driver.get(url)
+
+    #Pegando os processos
+    num_processo = ws.cell(row=index + 1, column=1).value
+
+    #Pegando o número do processo e entrando na pagina (1Grau apenas)
+    WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.ID,'label-sistema')))
+    driver.find_element(By.XPATH,'//*[@id="nrProcessoInput"]').send_keys(num_processo)
+    driver.find_element(By.XPATH,'//*[@id="btnPesquisar"]').send_keys(Keys.ENTER)
+
+    #Clicando no botao do 1Grau
     sleep(2)
-    #Digitando o link
-    p.write('https://pje.trt15.jus.br/consultaprocessual/')
-    p.press('enter')
-    sleep(3)
-    #Copiando o processo
-    p.write(num_processo)
-    p.press('enter')
-    sleep(3)
-    #Clicando no 1Grau
-    p.moveTo(x=675,y=334)
-    sleep(3)
+    p.moveTo(667,357)
     p.click()
-    p.press('enter')
-    #Tempo para escrever a captcha
+
+    #Clicando no campo de escrever a captcha
+    sleep(2)
+    p.moveTo(650, 446)
+    p.click()
+
+    #Escrevendo a Captcha, tem 6segundos para escrever
     sleep(8)
-    p.press('enter')
-    p.moveTo(x=50,y=145)
-    sleep(3)
-    p.click()
-    sleep(4)
+    driver.find_element(By.XPATH,'//*[@id="btnEnviar"]').click()
 
-    #Copiando o Orgao e colando no excel
-    p.tripleClick(x=180, y=222)
+    #Clicando no cabeçalho para recolher infos importantes:
+    WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="titulo-detalhes"]/h1')))
+    driver.find_element(By.XPATH,'//*[@id="titulo-detalhes"]/h1').click()
+
+    #Coletando Orgão:
+    orgao = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[1]').text
+    c.copy(orgao)
+    text = c.paste()
+    ws.cell(column=2, row=index + 1, value=text)
+
+    #Coletando Autuado:
+    autuado = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[3]').text
+    c.copy(autuado)
+    text = c.paste()
+    ws.cell(column=3, row=index + 1, value=text)
+
+    #Coletando Valor:
+    valor = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[4]').text
+    c.copy(valor)
+    text = c.paste()
+    ws.cell(column=4, row=index + 1, value=text)
+
+    #Coletando Justica:
+    justica = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dt[5]').text
+    c.copy(justica)
+    text = c.paste()
+    ws.cell(column=5, row=index + 1, value=text)
+
+    #Coletando Polo Ativo:
+    p.tripleClick(x=558,y=302)
     p.hotkey('ctrl','c')
-    x = c.paste()
-    ws.cell(column= 2 ,row = index+1,value=x)
+    text = c.paste()
+    ws.cell(column=6, row=index + 1, value=text)
 
-
-    #Copiando Autuado
-    p.tripleClick(x=180, y=320)
+    #Coletando Polo Ativo ADVOGADO:
+    p.tripleClick(x=683,y=327)
     p.hotkey('ctrl','c')
-    x = c.paste()
-    ws.cell(column= 3 ,row = index+1,value=x)
+    text = c.paste()
+    ws.cell(column=7, row=index + 1, value=text)
 
-    #Copiando Valor
-    p.tripleClick(x=180, y=375)
+    #Coletando Polo Passivo:
+    p.tripleClick(x=898,y=301)
     p.hotkey('ctrl','c')
-    x = c.paste()
-    ws.cell(column= 4,row = index + 1,value=x)
+    text = c.paste()
+    ws.cell(column=8, row=index + 1, value=text)
 
-    #Copiando Justiça
-    p.tripleClick(x=180, y=408)
+    #Coletando Polo Passivo ADVOGADO:
+    p.tripleClick(x=963,y=327)
     p.hotkey('ctrl','c')
-    x = c.paste()
-    ws.cell(column= 5,row = index + 1,value=x)
+    text = c.paste()
+    ws.cell(column=9, row=index + 1, value=text)
 
-    # Copiando Polo Ativo
-    p.tripleClick(x=542, y=256)
-    p.hotkey('ctrl', 'c')
-    x = c.paste()
-    ws.cell(column= 6, row = index + 1, value=x)
-
-    # Copiando Polo Passivo
-    p.tripleClick(x=892, y=258)
-    p.hotkey('ctrl', 'c')
-    x = c.paste()
-    ws.cell(column= 7, row = index + 1, value=x)
-
-    sleep(2)
-
-    #Adiciona +1 no loop para ir para proxima linha de processo
-    index += 1
-    p.hotkey('alt','f4')
-    #Salva cada volta do loop na planilha
+    #Salvando a planilha com os dados
     wb.save(file)
 
-
+    #Add +1 a variavel global index, para que ela seja '2' no proximo loop
+    index += 1
 
 
