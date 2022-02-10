@@ -14,7 +14,7 @@ file = r'C:\Users\supor\Desktop\PXTeste.xlsx'
 wb = load_workbook(file)
 ws = wb.active
 
-for i in range(1,2):
+for i in range(1,3):
 
     # Inicializando o chrome maximizado
     url = 'https://pje.trt15.jus.br/consultaprocessual/'
@@ -24,8 +24,9 @@ for i in range(1,2):
 
     #Pegando os processos
     num_processo = ws.cell(row=index + 1, column=1).value
+    print("Realizando a consulta no processo: "+num_processo)
 
-    #Pegando o número do processo e entrando na pagina (1Grau apenas)
+    #Pegando o número do processo e entrando na pagina (Funciona apenas 1Grau por enquanto)
     WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.ID,'label-sistema')))
     driver.find_element(By.XPATH,'//*[@id="nrProcessoInput"]').send_keys(num_processo)
     driver.find_element(By.XPATH,'//*[@id="btnPesquisar"]').send_keys(Keys.ENTER)
@@ -43,6 +44,16 @@ for i in range(1,2):
     #Escrevendo a Captcha, tem 6segundos para escrever
     sleep(8)
     driver.find_element(By.XPATH,'//*[@id="btnEnviar"]').click()
+
+    #Essa condição verifica se há a palavra 'sentença', se houver pula pro proximo
+    sleep(3)
+    x= driver.find_element(By.XPATH,'//*[@id="cabecalhoVisualizador"]/mat-card-title').text[13:]
+    if x == 'Sentença':
+        print(f"Processo {num_processo} há sentença")
+        sentencatxt = "OBS: Tem sentença proferida"
+        ws.cell(column=2, row=index+1, value=sentencatxt)
+        index += 1
+        continue
 
     #Clicando no cabeçalho para recolher infos importantes:
     WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="titulo-detalhes"]/h1')))
@@ -98,8 +109,11 @@ for i in range(1,2):
 
     #Salvando a planilha com os dados
     wb.save(file)
-
+    print(f'Consulta {index} finalizada..')
     #Add +1 a variavel global index, para que ela seja '2' no proximo loop
     index += 1
+
+
+
 
 
