@@ -8,13 +8,13 @@ import pyperclip as c
 from openpyxl import load_workbook
 import pyautogui as p
 
-index = 1
+index = 2
 # Abrindo excel
 file = r'C:\Users\supor\Desktop\PXTeste.xlsx'
 wb = load_workbook(file)
 ws = wb.active
 
-for i in range(1,3):
+for i in range(1,len(ws['A'])):     #é o loop, que irá de 1 até ''len(ws['A'])''<- Pega a coluna A do worksheet do excel, calcula quantos itens tem e diz que é o tamanho do range do loop for
 
     # Inicializando o chrome maximizado
     url = 'https://pje.trt15.jus.br/consultaprocessual/'
@@ -23,8 +23,8 @@ for i in range(1,3):
     driver.get(url)
 
     #Pegando os processos
-    num_processo = ws.cell(row=index + 1, column=1).value
-    print("Realizando a consulta no processo: "+num_processo)
+    num_processo = ws.cell(row=index, column=1).value
+    print("\nRealizando a consulta no processo: "+num_processo)
 
     #Pegando o número do processo e entrando na pagina (Funciona apenas 1Grau por enquanto)
     WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.ID,'label-sistema')))
@@ -51,9 +51,20 @@ for i in range(1,3):
     if x == 'Sentença':
         print(f"Processo {num_processo} há sentença")
         sentencatxt = "OBS: Tem sentença proferida"
-        ws.cell(column=2, row=index+1, value=sentencatxt)
+        ws.cell(column=2, row=index, value=sentencatxt)
         index += 1
         continue
+
+    #Coletando Juiz: // A coleta do juiz começa aqui pq é antes do click no cabeçalho
+    sleep(2)
+    juiz = driver.find_element(By.XPATH, '//*[@id="cabecalhoVisualizador"]/mat-card-subtitle').text
+    j = str(juiz)
+    inicio = j.find("por") + 3
+    final = j.find("em", inicio)
+    substrg = j[inicio:final]
+    c.copy(substrg)
+    text = c.paste()
+    ws.cell(column=10, row=index, value=text)
 
     #Clicando no cabeçalho para recolher infos importantes:
     WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="titulo-detalhes"]/h1')))
@@ -63,49 +74,60 @@ for i in range(1,3):
     orgao = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[1]').text
     c.copy(orgao)
     text = c.paste()
-    ws.cell(column=2, row=index + 1, value=text)
+    ws.cell(column=2, row=index, value=text)
 
     #Coletando Autuado:
     autuado = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[3]').text
     c.copy(autuado)
     text = c.paste()
-    ws.cell(column=3, row=index + 1, value=text)
+    ws.cell(column=3, row=index, value=text)
 
     #Coletando Valor:
     valor = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dd[4]').text
     c.copy(valor)
     text = c.paste()
-    ws.cell(column=4, row=index + 1, value=text)
+    ws.cell(column=4, row=index, value=text)
 
     #Coletando Justica:
     justica = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]/dl/dt[5]').text
     c.copy(justica)
     text = c.paste()
-    ws.cell(column=5, row=index + 1, value=text)
+    ws.cell(column=5, row=index, value=text)
 
     #Coletando Polo Ativo:
     p.tripleClick(x=558,y=302)
     p.hotkey('ctrl','c')
     text = c.paste()
-    ws.cell(column=6, row=index + 1, value=text)
+    ws.cell(column=6, row=index, value=text)
 
     #Coletando Polo Ativo ADVOGADO:
     p.tripleClick(x=683,y=327)
     p.hotkey('ctrl','c')
     text = c.paste()
-    ws.cell(column=7, row=index + 1, value=text)
+    ws.cell(column=7, row=index, value=text)
 
     #Coletando Polo Passivo:
     p.tripleClick(x=898,y=301)
     p.hotkey('ctrl','c')
     text = c.paste()
-    ws.cell(column=8, row=index + 1, value=text)
+    ws.cell(column=8, row=index, value=text)
 
     #Coletando Polo Passivo ADVOGADO:
     p.tripleClick(x=963,y=327)
     p.hotkey('ctrl','c')
     text = c.paste()
-    ws.cell(column=9, row=index + 1, value=text)
+    ws.cell(column=9, row=index, value=text)
+
+    #Coletando Assuntos:
+    sleep(2)
+    orgao = driver.find_element(By.XPATH,'//*[@id="colunas-dados-processo"]/div[1]').text+'...'
+    x = str(orgao) #Garantindo que ta em formato de string
+    inicio = x.find("Assunto(s):") + 11     #Encontrando o elemento "Assuntos" e definindo que será o inicio da substring, adicionar +11 exclui o elemento (Assunto(s) tem 11 chars)
+    final = x.find("...",inicio)            #Note que na linha 123 adicionei reticencias para delimitar como sendo o final da string orgao
+    substring = x[inicio:final]             #Criando a substring, que vem da 'x' a partir do inicio até o final
+    c.copy(substring)                       #Copiando a substring para o clipboard
+    assuntos2 = c.paste()
+    ws.cell(column=11, row=index, value=assuntos2)  #Inserindo na planilha
 
     #Salvando a planilha com os dados
     wb.save(file)
@@ -113,7 +135,7 @@ for i in range(1,3):
     #Add +1 a variavel global index, para que ela seja '2' no proximo loop
     index += 1
 
-
+print("\nFinalizando programa de consultas")
 
 
 
