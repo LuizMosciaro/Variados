@@ -18,7 +18,7 @@ while i != 1:
         login = "XXXX"
         senha = "XXXX"
 
-        url = 'https://clubedemais.connect.dock.tech/clubedemais/Controle?manipulador=Login'
+        url = 'XXXXXXXXX.COM.BR'
         driver = webdriver.Chrome()
         driver.maximize_window()
         driver.get(url)
